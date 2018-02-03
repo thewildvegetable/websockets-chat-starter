@@ -13,15 +13,18 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
     <script type="text/babel">
-        const messageServer = (socket, message) => {
-            socket.on('msgToServer', message.innerHTML);
+        let socket;
+        
+        const messageServer = () => {
+            const message = document.querySelector("#message").value;
+            console.log(message);
+            socket.emit('msgToServer', { msg: message });
         };
         
         const connectSocket = (e) => {
-            const message = document.querySelector("#message");
             const chat = document.querySelector("#chat");
             const send = document.querySelector("#send");
-            const socket = io.connect();
+            socket = io.connect();
             
             socket.on('connect', () => {
                 console.log('connecting');
@@ -36,10 +39,10 @@
             });
             
             socket.on('msg', (data) => {
-                chat.innerHTML += data.name + ": " + data.msg;
+                chat.innerHTML += data.name + ": " + data.msg + "&#13;&#10;";
             });
             
-            send.addEventListener('click', messageServer(socket, message));
+            send.onclick = messageServer;
         };
         
         const init = () => {

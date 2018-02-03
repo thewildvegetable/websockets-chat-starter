@@ -23,15 +23,15 @@ const users = { online: [] };
 const onJoined = (sock) => {
   const socket = sock;
 
-  users.online.push(socket);
-
   socket.on('join', (data) => {
     const joinMsg = {
       name: 'server',
       msg: `There are ${Object.keys(users).length} users online`,
     };
-
+      
+      //add the user to the users array
     socket.name = data.name;
+    users.online[socket.name] = socket;
     socket.emit('msg', joinMsg);
 
     socket.join('room1');
@@ -41,24 +41,29 @@ const onJoined = (sock) => {
       msg: `${data.name} has joined the room`,
     };
 
-    socket.broadcast.to('room1').emit('msg', response);
+    socket.broadcast.to('room1').emit('msg', response);     //sends to everyone but you
 
     console.log(`${data.name} joined`);
-    socket.emit('msg', { name: 'server', msg: 'You joined the room' });
+    socket.emit('msg', { name: 'server', msg: 'You joined the room' });     //sends only to you
   });
 };
 
 const onMsg = (sock) => {
   const socket = sock;
-
+    
   socket.on('msgToServer', (data) => {
       console.log(data);
-    io.sockets.in('room1').emit('msg', { name: socket.name, msg: data.msg });
+      //add code to check message for !roll d then get the # after d, for /me and for !time. if none then just send to room
+    io.sockets.in('room1').emit('msg', { name: socket.name, msg: data.msg });   //sends to everyone in room
   });
 };
 
 const onDisconnect = (sock) => {
   const socket = sock;
+    
+    //remove user from the user array
+    let index = users.online.indexOf(socket.name);
+    users.online.splice(index, 1);
 };
 
 io.sockets.on('connection', (socket) => {
