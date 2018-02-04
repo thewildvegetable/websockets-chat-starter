@@ -26,7 +26,7 @@ const onJoined = (sock) => {
   socket.on('join', (data) => {
     const joinMsg = {
       name: 'server',
-      msg: `There are ${Object.keys(users).length} users online`,
+      msg: `There are ${Object.keys(users.online).length} users online`,
     };
       
       //add the user to the users array
@@ -53,8 +53,52 @@ const onMsg = (sock) => {
     
   socket.on('msgToServer', (data) => {
       console.log(data);
-      //add code to check message for !roll d then get the # after d, for /me and for !time. if none then just send to room
-    io.sockets.in('room1').emit('msg', { name: socket.name, msg: data.msg });   //sends to everyone in room
+      //check if the first characters of the message contains a command. if not then send the message to the room
+      //roll some dice
+      if (data.msg.substr(0, 5).includes("/roll")){
+          //get number of dice
+          let numDice = parseInt(data.msg.charAt(6));
+          
+          //get sides on the dice
+          let numSides = parseInt(data.msg.substr(8));
+          
+          //roll the dice
+          let sum = 0;
+          for (var i = 0; i < numDice; i++){
+              sum += Math.floor((Math.random() * numSides) + 1);
+          }
+          
+          //construct the message
+          let message = { name: "server", msg: socket.name + " rolled " + numDice + "d" + numSides + "s for a result of " + sum };
+          
+          //send the message
+          io.sockets.in('room1').emit('msg', message);
+      }
+      //perform an action
+      else if (data.msg.substr(0, 3).includes("/me")){
+          let userAction = data.msg.substr(3);
+          
+          //construct the message
+          let message = { name: "server", msg: socket.name + " " + userAction };
+          
+          //send the message
+          io.sockets.in('room1').emit('msg', message);
+      }
+      //get the time
+      else if (data.msg.substr(0, 5).includes("/time")){
+          //get the server time
+          const d = new Date();
+          const dateString = `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+          
+          //construct the message
+          let message = { name: "server", msg: "Time is " + dateString };
+          
+          //send the message
+          socket.emit('msg', message);
+      }
+      else{
+          io.sockets.in('room1').emit('msg', { name: socket.name, msg: data.msg });   //sends to everyone in room
+      }
   });
 };
 
@@ -64,6 +108,7 @@ const onDisconnect = (sock) => {
     //remove user from the user array
     let index = users.online.indexOf(socket.name);
     users.online.splice(index, 1);
+    console.log("users online" + users.online.length);
 };
 
 io.sockets.on('connection', (socket) => {

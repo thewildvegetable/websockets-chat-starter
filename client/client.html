@@ -19,6 +19,7 @@
             const message = document.querySelector("#message").value;
             console.log(message);
             socket.emit('msgToServer', { msg: message });
+            document.querySelector("#message").value = "";
         };
         
         const connectSocket = (e) => {
