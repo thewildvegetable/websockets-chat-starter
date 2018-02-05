@@ -31,8 +31,7 @@ const onJoined = (sock) => {
       
       //add the user to the users array
     socket.name = data.name;
-    //users.online[socket.name] = socket;
-      users.online.push(socket)
+    users.online[socket.name] = socket;
     socket.emit('msg', joinMsg);
 
     socket.join('room1');
@@ -54,7 +53,7 @@ const onMsg = (sock) => {
     
   socket.on('msgToServer', (data) => {
       console.log(data);
-      //check if the first characters of the message contains a command. if not then send the message to the room
+      //check if the first characters of the message contains a command.
       //roll some dice
       if (data.msg.substr(0, 5).includes("/roll")){
           //get number of dice
@@ -108,8 +107,7 @@ const onDisconnect = (sock) => {
     
     socket.on('disconnect', () => {
         //remove user from the user array
-        let index = users.online.indexOf(socket);
-        users.online.splice(index, 1);
+        delete users.online[socket.name];
         console.log(users.online);
         console.log("someone disconnected. users online" + users.online.length);
     })
