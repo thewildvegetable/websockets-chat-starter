@@ -31,7 +31,8 @@ const onJoined = (sock) => {
       
       //add the user to the users array
     socket.name = data.name;
-    users.online[socket.name] = socket;
+    //users.online[socket.name] = socket;
+      users.online.push(socket)
     socket.emit('msg', joinMsg);
 
     socket.join('room1');
@@ -105,10 +106,14 @@ const onMsg = (sock) => {
 const onDisconnect = (sock) => {
   const socket = sock;
     
-    //remove user from the user array
-    let index = users.online.indexOf(socket.name);
-    users.online.splice(index, 1);
-    console.log("users online" + users.online.length);
+    socket.on('disconnect', () => {
+        //remove user from the user array
+        let index = users.online.indexOf(socket);
+        users.online.splice(index, 1);
+        console.log(users.online);
+        console.log("someone disconnected. users online" + users.online.length);
+    })
+    
 };
 
 io.sockets.on('connection', (socket) => {
